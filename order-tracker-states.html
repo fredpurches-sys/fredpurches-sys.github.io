@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Tracker — All States</title>
+<style>
+  :root{--navy:#1C3F5F;--green:#6CB33F;--ink:#1d2433;--muted:#6b7689;--hint:#9aa3b2;--line:#e4e8ee;--page:#f3f5f8;--est:#4f63c4;--est1:#5a9e2f;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--page);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.6;padding:28px 16px;}
+  .wrap{max-width:560px;margin:0 auto;}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+  .group-lbl{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#8a93a1;margin:0 0 8px;}
+  .pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+  .pill{font-size:12.5px;font-weight:600;cursor:pointer;padding:7px 13px;border-radius:20px;border:1px solid #d7dce4;background:#fff;color:#46505f;transition:all .12s ease;text-transform:capitalize;}
+  .pill.on{background:var(--navy);color:#fff;border:1.5px solid var(--navy);}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;max-width:560px;margin:4px auto 0;font-size:11.5px;color:var(--muted);}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .lg-dot{width:14px;height:14px;border-radius:50%;display:inline-block;border:2px solid;}
+  .lg-done{background:var(--green);border-color:var(--green);}
+  .lg-e1{background:#eef6e6;border-color:var(--est1);}
+  .lg-e2{background:#eef2fb;border-color:var(--est);border-style:dashed;}
+  .lg-pend{background:#fff;border-color:var(--line);}
+
+  .card{width:100%;max-width:560px;margin:18px auto 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px 26px 28px;}
+  .head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .title{font-size:19px;font-weight:600;margin:0;color:var(--navy);}
+  .badge{font-size:11.5px;font-weight:600;letter-spacing:.2px;padding:5px 11px;border-radius:20px;border:1px solid;white-space:nowrap;}
+  .sub{font-size:13px;color:var(--muted);margin:3px 0 30px;}
+  .track{position:relative;display:flex;justify-content:space-between;margin:0 6px 18px;}
+  .track.simple{margin:0 6px 18px;}
+  .rail,.fill{position:absolute;top:22px;height:4px;border-radius:3px;}
+  .rail{left:22px;right:22px;background:var(--line);}
+  .fill{left:22px;background:var(--green);transition:width .4s ease;}
+  .step{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:84px;text-align:center;}
+  .dot{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid;background:#fff;border-color:var(--line);color:var(--hint);}
+  .dot.done{background:var(--green);border-color:var(--green);color:#fff;}
+  .dot.e2{border-style:dashed;}
+  .dot.active,.dot.e1,.dot.e2{animation:pulse 1.8s ease-in-out infinite;}
+  .num{font-size:16px;font-weight:700;}
+  .lbl{font-size:11.5px;margin-top:9px;line-height:1.3;color:var(--hint);}
+  .lbl span{display:block;}
+  .step.done .lbl,.step.active .lbl,.step.e1 .lbl,.step.e2 .lbl{color:var(--ink);font-weight:600;}
+  .time{display:block;font-size:10px;font-weight:500;color:var(--hint);margin-top:5px;line-height:1.3;}
+  .time.hold{color:#b06a12;font-weight:700;}
+  .time.t1{color:var(--est1);font-weight:600;}
+  .time.t2{color:var(--est);font-weight:600;font-style:italic;}
+  .time.estp{color:var(--hint);font-style:italic;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,0,0,0);}50%{box-shadow:0 0 0 6px var(--pulse,rgba(232,168,74,.18));}}
+  .drill{display:block;margin:0 auto 22px;background:none;border:none;cursor:pointer;color:var(--navy);font-size:12.5px;font-weight:600;padding:4px 8px;}
+  .drill:hover{text-decoration:underline;}
+  .alert{background:#fff;border:1px solid;border-left:4px solid;border-radius:9px;padding:16px 18px;display:flex;gap:13px;align-items:flex-start;}
+  .alert .ic{font-size:22px;line-height:1;margin-top:1px;flex-shrink:0;}
+  .alert h3{font-size:15px;font-weight:600;margin:0 0 5px;color:var(--ink);}
+  .alert p{font-size:13px;color:var(--muted);margin:0 0 14px;}
+  .alert p.no-cta{margin-bottom:0;}
+  .btn{appearance:none;border:none;cursor:pointer;background:var(--navy);color:#fff;font-size:13px;font-weight:600;padding:10px 18px;border-radius:8px;transition:transform .08s ease,background .15s ease;}
+  .btn:hover{background:#16344f;}
+  .btn:active{transform:scale(.98);}
+  .next{margin:14px 0 0;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fbfcfe;}
+  .next summary{list-style:none;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--navy);padding:12px 16px;display:flex;align-items:center;gap:8px;}
+  .next summary::-webkit-details-marker{display:none;}
+  .next summary .chev{margin-left:auto;font-size:11px;color:var(--muted);transition:transform .15s ease;}
+  .next[open] summary .chev{transform:rotate(180deg);}
+  .next ol{margin:0;padding:2px 18px 16px 40px;}
+  .next li{font-size:13px;color:var(--muted);margin:0 0 7px;line-height:1.5;}
+  .next li:last-child{margin-bottom:0;}
+  .eta{font-size:12px;color:var(--hint);text-align:center;margin:22px 0 0;}
+  .updated{font-size:11.5px;color:var(--hint);text-align:center;margin:6px 0 0;}
+  svg{display:block;}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="group-lbl">TX switch — live flow (low risk)</p>
+    <div class="pills" id="flow"></div>
+    <p class="group-lbl">New service — live flow (higher risk)</p>
+    <div class="pills" id="ns"></div>
+    <p class="group-lbl">Exceptions</p>
+    <div class="pills" id="exc"></div>
+    <div class="legend">
+      <span><i class="lg-dot lg-done"></i> Confirmed</span>
+      <span><i class="lg-dot lg-e1"></i> On track · confirming (low risk)</span>
+      <span><i class="lg-dot lg-e2"></i> In progress · confirming (higher risk)</span>
+      <span><i class="lg-dot lg-pend"></i> Upcoming</span>
+    </div>
+  </div>
+  <main class="card" id="card" role="region" aria-label="Order status"></main>
+
+<script>
+const STEPS = [
+  {key:"placed",   label:["Order","placed"],   done:["Order","placed"],   icon:"doc"},
+  {key:"provider", label:["Send to","NRG"],     done:["Sent to","NRG"],     icon:"send"},
+  {key:"review",   label:["NRG","review"],       done:["NRG","approved"],    icon:"clock"},
+  {key:"utility",  label:["Oncor","setup"],      done:["Oncor","approved"],  icon:"bolt"},
+  {key:"poweron",  label:["Power","on"],          done:["Powered","on"],      icon:"bulb"},
+];
+// Simplified 2-step view — collapses the middle steps.
+const SIMPLE = [
+  {key:"placed",  label:["Order","placed"], done:["Order","placed"], icon:"doc"},
+  {key:"poweron", label:["Power","on"],     done:["Powered","on"],   icon:"bulb"},
+];
+
+const TIMES  = ["Jun 6 · 2:14 PM","Jun 6 · 2:15 PM","Jun 6 · 2:18 PM","Jun 8 · 9:02 AM","Jun 9"];
+const ETIMES = ["","","","Confirming","Est. Jun 9"];
+
+const ICONS = {
+  check:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  clock:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  bolt:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>',
+  bulb:'<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V18h6v-1.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>',
+  doc:'<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',
+  send:'<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>',
+  warn:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.8 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.8a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+  info:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg>',
+  okc:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
+};
+
+const TONES = {
+  progress:  {bg:"#eaf1f7",line:"#2f6690",tx:"#1C3F5F",ic:"info"},
+  est1:      {bg:"#eef6e6",line:"#5a9e2f",tx:"#3d6b1f",ic:"info"},
+  est2:      {bg:"#eef2fb",line:"#4f63c4",tx:"#33429e",ic:"clock"},
+  info:      {bg:"#eaf1f7",line:"#2f6690",tx:"#1C3F5F",ic:"info"},
+  action:    {bg:"#fdf3e3",line:"#e8a84a",tx:"#8a5a12",ic:"warn"},
+  success:   {bg:"#eef6e6",line:"#6CB33F",tx:"#3d6b1f",ic:"okc"},
+};
+const E1_PAL = {bg:"#eef6e6",line:"#5a9e2f",tx:"#3d6b1f",pulse:"rgba(108,179,63,.18)"};
+const E2_PAL = {bg:"#eef2fb",line:"#4f63c4",tx:"#33429e",pulse:"rgba(79,99,196,.18)"};
+const ACT_PAL= {bg:"#fdf3e3",line:"#e8a84a",tx:"#8a5a12",pulse:"rgba(232,168,74,.18)"};
+
+// states per step: confirmed | est1 | est2 | active | action | pending | pendingEst
+const STATUS = {
+  order_received:  {states:["confirmed","active","pending","pending","pendingEst"], tone:"progress", badge:"In progress", title:"We've got your order", body:"Thanks! We're getting your order ready to send to NRG. Your power stays on the whole time — nothing for you to do.", cta:null},
+  sent_to_supplier:{states:["confirmed","confirmed","active","pending","pendingEst"], tone:"progress", badge:"In progress", title:"Your order is with NRG", body:"NRG is reviewing your enrollment. This usually takes a moment — we'll keep this updated.", cta:null},
+  utility_confirming:{states:["confirmed","confirmed","confirmed","est1","pendingEst"], tone:"est1", badge:"On track · confirming", title:"Setting up your switch with Oncor", body:"NRG approved your plan and sent it to Oncor. We expect this to go through smoothly — your power stays on throughout, with nothing for you to do. We'll confirm the moment it's official. Estimated power on June 9.", cta:null},
+  utility_confirmed:{states:["confirmed","confirmed","confirmed","confirmed","est1"], tone:"est1", badge:"On track · confirming", title:"Approved by Oncor", body:"Oncor approved your switch on Jun 8. Your switch is on track for June 9 — we'll confirm here as soon as it's complete.", cta:null},
+  power_on:        {states:["confirmed","confirmed","confirmed","confirmed","confirmed"], tone:"success", badge:"All set", title:"You're all powered up", body:"Your switch completed on June 9. Welcome aboard — you can view your plan details and first bill estimate anytime.", cta:"View my plan"},
+  utility_rejected:{states:["confirmed","confirmed","confirmed","action","pendingEst"], tone:"action", badge:"Action needed · On hold", title:"We hit a snag confirming your switch", fl:"On hold", body:"Oncor couldn't process the switch and flagged a detail to fix. Your current power is unaffected. Sorting it out takes about 2 minutes and keeps your rate locked.", cta:"Review details"},
+
+  ns_utility_confirming:{states:["confirmed","confirmed","confirmed","est2","pendingEst"], tone:"est2", badge:"In progress", title:"Setting up your new service", fl:"In progress", body:"Because this is a new connection, the utility may need extra steps — sometimes a permit — before power can be turned on. We're working through it and will confirm here. This can take a few days.", cta:null},
+  ns_power_validating:{states:["confirmed","confirmed","confirmed","confirmed","est2"], tone:"est2", badge:"Confirming power", title:"Confirming your power is on", fl:"Confirming meter", body:"Your service is set up. We're confirming your meter is active before we mark this done — we don't want to tell you the lights are on until we're sure they are.", cta:null},
+  ns_power_on:     {states:["confirmed","confirmed","confirmed","confirmed","confirmed"], tone:"success", badge:"All set", title:"Your power is on", body:"We've confirmed your meter is active as of June 9. Welcome aboard!", cta:"View my plan"},
+
+  missing_info:    {states:["action","pending","pending","pending","pending"], tone:"action", badge:"Action needed · On hold", title:"We need a couple more details to send your order", fl:"On hold", body:"A few items on your order are incomplete, so your enrollment is paused. Finishing them takes about 2 minutes, and your plan rate stays locked while you do.", cta:"Complete my order"},
+  credit_check:    {states:["confirmed","confirmed","action","pending","pending"], tone:"action", badge:"Action needed · On hold", title:"We need one more thing to finish your credit check", fl:"On hold", body:"NRG needs to confirm a few details before approving your order, so it's paused for now. It takes about 2 minutes, and your plan rate stays locked while you complete it.", cta:"Complete now"},
+  deposit_required:{states:["confirmed","confirmed","action","pending","pending"], tone:"action", badge:"Action needed · On hold", title:"A deposit is needed to approve your order", fl:"On hold", body:"Based on NRG's review, a refundable deposit is required before your order can move forward. Your enrollment is paused until it's paid — it only takes a minute.", cta:"Pay deposit"},
+  permit_required: {states:["confirmed","confirmed","confirmed","est2","pendingEst"], tone:"est2", badge:"In review · Delayed", title:"Your city requires a permit before power can turn on", fl:"Delayed · permit", body:"Oncor has requested a permit for your address. They handle this directly — there's nothing you need to do. We'll keep you posted and update your estimated date as soon as it clears.", cta:null},
+  utility_delay:   {states:["confirmed","confirmed","confirmed","est2","pendingEst"], tone:"est2", badge:"Slight delay", title:"Oncor needs a little more time", fl:"Delayed", body:"Oncor pushed the switch date out slightly. This is common and fully handled on their end — no action needed from you.", cta:null},
+};
+
+// "What happens next" — plain-language preview of the next step(s), to deflect status questions.
+const NEXT = {
+  order_received:    ["We send your order to NRG to review — usually within minutes.","NRG approves your enrollment, then Oncor schedules your switch.","Your power stays on the entire time. Nothing for you to do."],
+  sent_to_supplier:  ["NRG finishes reviewing your enrollment.","Once approved, it goes to Oncor to schedule your switch.","We'll update this automatically — no action needed from you."],
+  utility_confirming:["Oncor completes your switch on your start date (est. June 9).","We confirm here the moment it's official.","Your power stays on throughout — nothing for you to do."],
+  utility_confirmed: ["Your switch finishes on June 9 and we mark you powered on.","You'll be able to view your plan and first bill estimate.","No action needed between now and then."],
+  power_on:          ["Your first bill estimate will be ready after your first full billing cycle.","You can view your plan details anytime.","Welcome aboard — there's nothing else to do."],
+  utility_rejected:  ["Review the flagged detail (about 2 minutes).","We resend the corrected switch to Oncor right away.","We'll confirm your new switch date here once it clears."],
+  ns_utility_confirming:["The utility completes setup — occasionally a permit is needed first.","We then confirm your meter is active before marking this done.","This can take a few days; we'll keep the estimate updated."],
+  ns_power_validating:["We confirm your meter is actually pulling power.","Once verified, we mark your service on — usually within a day.","Nothing for you to do while we check."],
+  ns_power_on:       ["Your service is active and confirmed.","Your first bill estimate follows your first billing cycle.","Welcome aboard!"],
+  missing_info:      ["Complete the missing details (about 2 minutes).","We send your order to NRG to review.","Your plan rate stays locked while you finish."],
+  credit_check:      ["Finish the credit-check details NRG needs.","Once approved, your switch goes to Oncor to schedule.","Your plan rate stays locked while you complete it."],
+  deposit_required:  ["Pay the refundable deposit (takes a minute).","Your order moves to NRG for approval right after.","Your plan rate stays locked until then."],
+  permit_required:   ["Oncor obtains the permit — they handle this directly.","Once it clears, they schedule your power-on.","We'll update your estimated date as soon as we know more."],
+  utility_delay:     ["Oncor completes your switch on the new date.","We confirm here as soon as it's done.","Nothing needed from you in the meantime."],
+};
+
+const FLOW = ["order_received","sent_to_supplier","utility_confirming","utility_confirmed","power_on","utility_rejected"];
+const NS   = ["ns_utility_confirming","ns_power_validating","ns_power_on"];
+const EXC  = ["missing_info","credit_check","deposit_required","permit_required","utility_delay"];
+let current = "utility_confirming";
+let view = "simple";   // "simple" (2-step) | "detailed" (5-step)
+
+// Collapse the full 5-step states into the 2-step [placed, power-on] view.
+function deriveSimple(full, c){
+  const placed = full[0]==="confirmed" ? "confirmed" : (full[0]==="action" ? "action" : "active");
+  let poweron;
+  if(full.every(s=>s==="confirmed")) poweron="confirmed";
+  else if(full[0]==="action") poweron="pending";            // paused at the very start
+  else if(full.some(s=>s==="action")) poweron="action";      // on hold on the way to power
+  else poweron = (c.tone==="est2" || full.some(s=>s==="est2")) ? "est2" : "est1";
+  return [placed, poweron];
+}
+
+function buildStep(s, state, realTime, estTime, isFocus, fl, num, t){
+  let cls="pending", dotCls="", inner=`<span class="num">${num}</span>`, dotStyle="", timeHtml="";
+  if(state==="confirmed"){
+    cls="done"; dotCls="done"; inner=ICONS.check;
+    timeHtml=`<span class="time">${realTime}</span>`;
+  } else if(state==="est1"){
+    cls="e1"; dotCls="e1"; inner=ICONS.clock;
+    dotStyle=`style="background:${E1_PAL.bg};border-color:${E1_PAL.line};color:${E1_PAL.tx};--pulse:${E1_PAL.pulse}"`;
+    timeHtml=`<span class="time t1">${(isFocus&&fl)?fl:(estTime||"Confirming")}</span>`;
+  } else if(state==="est2"){
+    cls="e2"; dotCls="e2"; inner=ICONS.clock;
+    dotStyle=`style="background:${E2_PAL.bg};border-color:${E2_PAL.line};color:${E2_PAL.tx};--pulse:${E2_PAL.pulse}"`;
+    timeHtml=`<span class="time t2">${(isFocus&&fl)?fl:(estTime||"Est. · confirming")}</span>`;
+  } else if(state==="active"){
+    cls="active"; dotCls="active"; inner=ICONS[s.icon];
+    dotStyle=`style="background:${t.bg};border-color:${t.line};color:${t.tx};--pulse:${t.line}33"`;
+  } else if(state==="action"){
+    cls="active"; dotCls="active"; inner=ICONS.warn;
+    dotStyle=`style="background:${ACT_PAL.bg};border-color:${ACT_PAL.line};color:${ACT_PAL.tx};--pulse:${ACT_PAL.pulse}"`;
+    timeHtml=`<span class="time hold">${fl||"On hold"}</span>`;
+  } else if(state==="pendingEst"){
+    timeHtml=`<span class="time estp">${estTime}</span>`;
+  }
+  const lab = (state==="confirmed" && s.done) ? s.done : s.label;
+  return `<div class="step ${cls}">
+    <span class="dot ${dotCls}" ${dotStyle}>${inner}</span>
+    <span class="lbl">${lab.map(l=>`<span>${l}</span>`).join("")}</span>
+    ${timeHtml}
+  </div>`;
+}
+
+function render(status){
+  const c = STATUS[status], t = TONES[c.tone];
+  const full = c.states;
+  const complete = full.every(s=>s==="confirmed");
+  const isAction = c.tone==="action";
+
+  // Pick steps + states for the active view
+  const simple = view==="simple";
+  const steps  = simple ? SIMPLE : STEPS;
+  const states = simple ? deriveSimple(full,c) : full;
+  const realT  = simple ? [TIMES[0], TIMES[4]] : TIMES;
+  const estT   = simple ? ["", "Est. Jun 9"] : ETIMES;
+  const flArg  = simple ? null : c.fl;   // simple view keeps it date-focused
+
+  let lastConfirmed = -1;
+  states.forEach((s,i)=>{ if(s==="confirmed") lastConfirmed = i; });
+  const pct = lastConfirmed < 0 ? 0 : lastConfirmed/(steps.length-1);
+
+  let focusUsed=false;
+  const stepsHtml = steps.map((s,idx)=>{
+    const state=states[idx];
+    const isFocus=!focusUsed && (state==="est1"||state==="est2"||state==="active"||state==="action");
+    if(isFocus) focusUsed=true;
+    // keep the "On hold" label on action even in simple view
+    const fl = (state==="action") ? (c.fl||"On hold") : flArg;
+    return buildStep(s, state, realT[idx], estT[idx], isFocus, fl, idx+1, t);
+  }).join("");
+
+  const drillHtml = `<button class="drill" onclick="toggleView()">${simple ? "Show full steps ▾" : "Hide steps ▴"}</button>`;
+  const ctaHtml = c.cta ? `<button class="btn" onclick="alert('Action for: ${status}')">${c.cta}</button>` : "";
+  const bodyCls = c.cta ? "" : "no-cta";
+  const etaHtml = complete ? "" :
+    `<p class="eta">Estimated power on: June 9${isAction?", once the above is resolved":" — we're working to confirm"}</p>`;
+
+  const nextItems = NEXT[status] || [];
+  const nextSummary = complete ? "What happens now" : (isAction ? "What happens after you finish" : "What happens next");
+  const nextHtml = nextItems.length ? `
+    <details class="next" ${isAction?"open":""}>
+      <summary>${nextSummary}<span class="chev">▾</span></summary>
+      <ol>${nextItems.map(n=>`<li>${n}</li>`).join("")}</ol>
+    </details>` : "";
+
+  document.getElementById("card").innerHTML = `
+    <span class="sr-only">Order status: ${c.title}</span>
+    <div class="head">
+      <h1 class="title">Your enrollment status</h1>
+      <span class="badge" style="color:${t.tx};background:${t.bg};border-color:${t.line}">${c.badge}</span>
+    </div>
+    <p class="sub">Order #EB-48201 · Provider: NRG · Utility: Oncor · Start date: Jun 9, 2026</p>
+    <div class="track ${simple?'simple':''}" aria-hidden="true">
+      <div class="rail"></div>
+      <div class="fill" style="width:calc((100% - 44px) * ${pct})"></div>
+      ${stepsHtml}
+    </div>
+    ${drillHtml}
+    <div class="alert" style="border-color:${t.line};border-left-color:${t.line}" role="${isAction?"alert":"status"}">
+      <span class="ic" style="color:${t.line}">${ICONS[t.ic]}</span>
+      <div>
+        <h3>${c.title}</h3>
+        <p class="${bodyCls}">${c.body}</p>
+        ${ctaHtml}
+      </div>
+    </div>
+    ${nextHtml}
+    ${etaHtml}
+    <p class="updated">Last updated from APG&E report · Jun 9, 2026 · 8:05 AM CT</p>
+  `;
+  document.querySelectorAll(".pill").forEach(p=>p.classList.toggle("on", p.dataset.s===status));
+}
+
+function buildPills(id, arr){
+  document.getElementById(id).innerHTML = arr.map(s=>
+    `<button class="pill ${s===current?'on':''}" data-s="${s}" onclick="select('${s}')">${s.replace(/_/g,' ')}</button>`
+  ).join("");
+}
+function select(s){ current = s; render(s); }
+function toggleView(){ view = (view==="simple") ? "detailed" : "simple"; render(current); }
+window.select = select;
+window.toggleView = toggleView;
+
+buildPills("flow", FLOW);
+buildPills("ns", NS);
+buildPills("exc", EXC);
+render(current);
+</script>
+</body>
+</html>
