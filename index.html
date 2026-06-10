@@ -3,21 +3,68 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My Site</title>
+  <title>My Site — Directory</title>
   <style>
-    body { font-family: -apple-system, system-ui, sans-serif; max-width: 640px;
-           margin: 60px auto; padding: 0 20px; line-height: 1.6; color: #222; }
-    h1 { margin-bottom: 0.2em; }
-    .muted { color: #666; }
-    a { color: #0066cc; }
+    body { font-family: -apple-system, system-ui, sans-serif; max-width: 680px;
+           margin: 60px auto; padding: 0 20px; line-height: 1.6; color: #1a1a1a; }
+    h1 { margin-bottom: 0.1em; }
+    .muted { color: #777; margin-top: 0; }
+    ul.dir { list-style: none; padding: 0; margin-top: 28px; }
+    ul.dir li { margin: 0; }
+    ul.dir li a { display: block; padding: 14px 16px; border: 1px solid #e3e3e3;
+                  border-radius: 10px; margin-bottom: 10px; text-decoration: none;
+                  color: #0066cc; font-weight: 600; transition: all .12s ease; }
+    ul.dir li a:hover { border-color: #0066cc; background: #f5faff; }
+    ul.dir li a .path { display: block; font-weight: 400; font-size: 0.82em;
+                        color: #999; margin-top: 2px; }
+    .empty, .error { color: #777; margin-top: 28px; }
   </style>
 </head>
 <body>
-  <h1>It works! 🎉</h1>
-  <p class="muted">This page is being served by GitHub Pages.</p>
-  <p>Drop more <code>.html</code> files into your <strong>Sites/fredpurches-sys.github.io</strong>
-     folder, run the <code>publish</code> command, and they'll appear here.</p>
-  <p>Example: a file named <code>about.html</code> will live at
-     <code>/about.html</code>.</p>
+  <h1>My Site</h1>
+  <p class="muted">A directory of every page published here.</p>
+
+  <ul class="dir" id="directory"></ul>
+  <p class="empty" id="empty" hidden>No pages yet — drop an <code>.html</code> file in your folder and publish.</p>
+  <p class="error" id="error" hidden>Couldn't load the page list right now. Try refreshing in a moment.</p>
+
+  <script>
+    // Build a directory by asking GitHub which files live in this repo.
+    const REPO = "fredpurches-sys/fredpurches-sys.github.io";
+    const API  = `https://api.github.com/repos/${REPO}/git/trees/main?recursive=1`;
+
+    // Turn "my-cool-page.html" -> "My Cool Page"
+    function prettify(path) {
+      const name = path.replace(/\.html$/i, "").split("/").pop();
+      return name.replace(/[-_]+/g, " ")
+                 .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    fetch(API)
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(data => {
+        const pages = (data.tree || [])
+          .filter(f => f.type === "blob" && /\.html$/i.test(f.path))
+          .map(f => f.path)
+          .filter(p => p.toLowerCase() !== "index.html" && p.toLowerCase() !== "404.html")
+          .sort();
+
+        const list = document.getElementById("directory");
+        if (pages.length === 0) {
+          document.getElementById("empty").hidden = false;
+          return;
+        }
+        for (const path of pages) {
+          const li = document.createElement("li");
+          const a  = document.createElement("a");
+          a.href = "/" + path;
+          a.innerHTML = prettify(path) +
+            (path.includes("/") ? `<span class="path">${path}</span>` : "");
+          li.appendChild(a);
+          list.appendChild(li);
+        }
+      })
+      .catch(() => { document.getElementById("error").hidden = false; });
+  </script>
 </body>
 </html>
