@@ -14,7 +14,7 @@ git add -A
 if git diff --cached --quiet; then
   echo "✅  Nothing new to publish — your site is already up to date."
   echo
-  read -n 1 -s -r -p "Press any key to close..."
+  [ -n "$PUBLISH_MENU" ] || read -n 1 -s -r -p "Press any key to close..."
   exit 0
 fi
 
@@ -31,4 +31,4 @@ echo
 echo "🚀  Pushed! Your site will be live in ~1 minute at:"
 echo "    https://fredpurches-sys.github.io/"
 echo
-read -n 1 -s -r -p "Press any key to close..."
+[ -n "$PUBLISH_MENU" ] || read -n 1 -s -r -p "Press any key to close..."
